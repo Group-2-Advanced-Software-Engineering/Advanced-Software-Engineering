@@ -1,0 +1,43 @@
+<div class="controls">
+  <h1 class="title">N-Queens Interactive Solver</h1>
+  <p class="info">Maximum allowed board size: 12. Enter a number between 1 and 12.</p>
+  <div class="input-group">
+    <label>
+      Board size:
+      <input type="number" [(ngModel)]="inputValue" min="1" max="12" />
+    </label>
+    <button (click)="startBoard()">Play</button>
+    <button (click)="showSolutions()">Show All Solutions</button>
+  </div>
+</div>
+
+<div *ngIf="currentBoard.length > 0" class="board-container">
+  <div class="board" [style.--n]="nqueensInput">
+    <div *ngFor="let row of currentBoard; let r = index" class="row">
+      <div
+        *ngFor="let cell of row; let c = index"
+        class="cell"
+        [class.light]="(r + c) % 2 === 0"
+        [class.dark]="(r + c) % 2 === 1"
+        [class.conflict]="conflictCells.has(r + '-' + c)"
+        cdkDropList
+        [id]="'cell-' + r + '-' + c"
+        [cdkDropListData]="{ row: r, col: c }"
+        [cdkDropListConnectedTo]="connectedDropLists"
+        (cdkDropListDropped)="onDrop($event)"
+      >
+        <div *ngIf="cell === 1" cdkDrag class="queen-container" [cdkDragData]="{ row: r, col: c }">
+          <img src="assets/queen.png" class="queen-img" alt="Q" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="solution-nav" *ngIf="allSolutions.length > 1">
+    <button class="nav-styles" (click)="prevSolution()">Prev</button>
+    <span>Solution {{ solutionIndex + 1 }} / {{ allSolutions.length }}</span>
+    <button class="nav-styles" (click)="nextSolution()">Next</button>
+  </div>
+</div>
+
+<div *ngIf="feedback" class="feedback">{{ feedback }}</div>
