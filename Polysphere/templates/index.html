@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Polysphere Puzzle Solver</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Polysphere Puzzle Solver</h1>
+        <p>Solve the 5x11 rectangular board with 12 polysphere pieces</p>
+      </div>
+
+      <div class="main-content">
+        <div class="board-section">
+          <h2 class="section-title">Puzzle Board (5x11)</h2>
+
+          <div class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+              <li>Click on a piece to select it (highlighted in blue)</li>
+              <li>
+                Hover the mouse over the board to preview the landing cells,
+                then click to place
+              </li>
+              <li>
+                Use "Rotate Piece" / "Flip Piece" to change orientation before
+                placing
+              </li>
+              <li>Use "Undo" to remove the last placed piece</li>
+              <li>Use "Clear Board" to start over</li>
+            </ul>
+          </div>
+
+          <div class="solve-info">
+            <h3>Solving Options:</h3>
+            <p>
+              Use <strong>"Solve Puzzle"</strong> to enumerate solutions for
+              your current board (with placed pieces), or
+              <strong>"Solve Empty"</strong> to enumerate from a blank 5×11
+              board. Solutions stream in batches as you scroll the list.
+            </p>
+
+            <div
+              class="solve-config"
+              role="group"
+              aria-label="Solver configuration"
+            >
+              <label>
+                Time limit (seconds):
+                <input
+                  type="number"
+                  id="solveTimeLimit"
+                  value="10"
+                  min="0"
+                  step="0.5"
+                />
+              </label>
+
+              <label>
+                Batch size:
+                <select id="batchSizeSelect" class="config-select">
+                  <option value="50">50</option>
+                  <option value="100" selected>100</option>
+                  <option value="500">500</option>
+                  <option value="1000">1000</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="hint">
+              • Time limit: Sets the per-request search time. Enter
+              <strong>0</strong> to remove the limit. If the limit is reached,
+              partial results are returned and you can continue loading by
+              scrolling.
+              <br />
+              • Batch size: Controls how many solutions load per scroll.
+              Defaults to <strong>100</strong>. You can change it anytime; the
+              next batch will use your new selection.
+            </div>
+          </div>
+
+          <div class="board" id="board"></div>
+
+          <div class="controls">
+            <button class="btn btn-primary" onclick="solvePuzzle()">
+              Solve Puzzle
+            </button>
+            <button class="btn btn-secondary" onclick="clearBoard()">
+              Clear Board
+            </button>
+            <button class="btn btn-success" onclick="solveEmpty()">
+              Solve Empty
+            </button>
+            <button class="btn btn-danger" onclick="undoLastMove()">
+              Undo
+            </button>
+          </div>
+
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Solving puzzle... (press Stop to cancel)</p>
+            <button
+              id="stopSolveButton"
+              class="btn btn-danger"
+              style="margin-top: 10px; display: none"
+              onclick="stopSolving()"
+            >
+              Stop
+            </button>
+          </div>
+
+          <div id="status"></div>
+        </div>
+
+        <div class="pieces-section">
+          <h2 class="section-title">Puzzle Pieces</h2>
+          <div class="pieces-grid" id="pieces"></div>
+
+          <div class="controls">
+            <button class="btn btn-secondary" onclick="loadPieces()">
+              Refresh Pieces
+            </button>
+            <button class="btn btn-primary" onclick="rotateSelectedPiece()">
+              Rotate Piece
+            </button>
+            <button class="btn btn-primary" onclick="flipSelectedPiece()">
+              Flip Piece
+            </button>
+          </div>
+
+          <div id="pieceInfo" class="status info" style="display: none">
+            <div>
+              <strong>Selected Piece:</strong> <span id="pieceName"></span>
+            </div>
+            <div>
+              <strong>Rotation:</strong> <span id="pieceRotation">0 deg</span>
+            </div>
+            <div>
+              <strong>Flipped:</strong> <span id="pieceFlipped">No</span>
+            </div>
+            <div id="selectedPiecePreview" class="piece-preview"></div>
+          </div>
+
+          <div
+            id="solutionsSummary"
+            class="status info"
+            style="display: none"
+          ></div>
+
+          <div class="solutions" id="solutions"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const solveId = {{ solution_id }};
+    </script>
+    <script src="{% static 'script.js' %}"></script>
+  </body>
+</html>
