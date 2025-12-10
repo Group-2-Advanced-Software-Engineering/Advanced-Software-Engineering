@@ -1,0 +1,107 @@
+# Kanoodle Exact Cover Solver & UI
+
+This project provides an incremental, cached exact-cover solver (Algorithm X / DLX) for a Kanoodle-like puzzle with a modern infinite-scroll UI, virtualization for large solution sets.
+
+## Key Features
+
+- Exact Cover Enumeration using a custom Dancing Links implementation (no external libs)
+- Incremental solution streaming (batches) with true resume via in-memory generator sessions
+- Optional Redis caching (append-only) for fast replays of previously enumerated solutions
+- Infinite scroll UI with hysteresis, cooldown, and fallback trigger (auto-load near bottom)
+- Virtualized solution list + canvas rendering to keep DOM light even for thousands of solutions
+- User-configurable batch size (50 / 100 / 500 / 1000) and time limit
+- Clear "No solutions found" messaging when partial boards are unsolvable
+- Deterministic ordering and uniqueness (tests verify no duplicates and stable ordering)
+- Positive & negative correctness parity tests (DLX vs brute-force on tiny boards)
+- Piece identity audit test (verifies no shape-identical duplicates under rotations/flips)
+
+## Architecture Overview
+
+| Component              | Purpose                                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| `kanoodleApp/util.py`  | DLX core, orientation generation, session & Redis helpers        |
+| `kanoodleApp/tests.py` | Correctness, stability, positive parity, identical-shape tests   |
+| `templates/index.html` | Main UI layout & controls                                        |
+| `static/script.js`     | Infinite scroll logic, virtualization, batch requests, rendering |
+| `static/style.css`     | Layout, configuration grouping, responsive styling               |
+
+## Setup
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py loaddata kanoodleApp/JSONs/piece_data.json
+```
+
+Optional: start Redis for caching
+
+```bash
+redis-server
+```
+
+Then run the server:
+
+```bash
+python manage.py runserver
+```
+
+Visit: http://127.0.0.1:8000/
+
+## Using the UI
+
+1. Set a time limit (optional) and choose a batch size.
+2. Start solving; first batch appears, further batches auto-load as you scroll.
+3. Clear or modify partial board (if supported) to re-solve; Redis will serve cached solutions instantly if identical state.
+4. "No solutions found" appears for unsolvable partial configurations.
+
+## Redis Caching Behavior
+
+- Each unique (board state + piece set) gets a deterministic key.
+- Solutions appended as they are discovered; meta hash tracks exhaustion.
+- Subsequent requests replay from cached prefix before continuing enumeration.
+- If Redis is absent, system quietly falls back to pure in-memory enumeration.
+
+## Correctness Evidence Summary
+
+Tests (`python manage.py test kanoodleApp.tests.CorrectnessTests`) cover:
+
+- Negative parity: unsolvable tiny 3×3 configuration (DLX == brute-force == 0 solutions)
+- Positive parity: solvable 1×4 domino case (2 labeled solutions, DLX == brute-force)
+- Stability & uniqueness: repeat run yields identical ordered hashes; no duplicates
+- Shape identity audit: no two distinct pieces share canonical shape under rotations/flips
+
+## Performance Notes
+
+- Virtualization reduces DOM nodes from O(N solutions) to O(visible) while scrolling.
+- Canvas-based board rendering avoids heavy nested HTML per solution.
+- Incremental enumeration avoids recomputing solved prefixes when using Redis or persistent session.
+
+## Running Tests
+
+```bash
+python manage.py test kanoodleApp.tests.CorrectnessTests
+```
+
+All tests should pass; failures indicate modeling or duplication issues.
+
+## Minimal Redis Sanity Check
+
+```bash
+python - <<'PY'
+import redis
+r = redis.Redis(host='127.0.0.1', port=6379, db=0)
+print('PING ->', r.ping())
+key='__kanoodle_probe__'
+r.set(key,'ok'); print('GET ->', r.get(key)); r.delete(key)
+PY
+```
+
+## Troubleshooting
+
+| Issue                         | Action                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| High solution count suspicion | Run identical-shape and duplicate-row audits (tests provided)           |
+| UI stops auto-loading         | Scroll near bottom again (hysteresis cooldown ensures no runaway calls) |
+| Redis not used                | Ensure server is running & `redis` Python package installed             |
