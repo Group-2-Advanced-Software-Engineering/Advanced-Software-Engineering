@@ -513,7 +513,7 @@ class KanoodleSolver:
         exhausted = False
 
         def solution_callback(solution_placement_ids):
-            nonlocal batch_solutions, total_solutions_found, timed_out, exhausted
+            nonlocal total_solutions_found, timed_out, exhausted
             if timed_out or exhausted:
                 return
             total_solutions_found += 1
