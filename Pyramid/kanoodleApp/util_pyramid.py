@@ -267,14 +267,14 @@ class DancingLinksPyramid:
             elapsed = (time.time() - self.start_time) * 1000
             if elapsed >= self.max_time:
                 self.timed_out = True
-                return len(self.solutions)
+                return self.solution_count
 
-        if max_solutions and len(self.solutions) >= max_solutions:
-            return len(self.solutions)
+        if max_solutions and hasattr(self, 'solution_count') and self.solution_count >= max_solutions:
+            return self.solution_count
 
         if self.header.right == self.header:
             callback(solution[:])
-            return len(self.solutions)
+            return self.solution_count if hasattr(self, 'solution_count') else 0
 
         min_col = None
         min_size = float('inf')
@@ -287,12 +287,17 @@ class DancingLinksPyramid:
             col = col.right
 
         if min_col is None or min_col.size == 0:
-            return len(self.solutions)
+            return self.solution_count if hasattr(self, 'solution_count') else 0
 
         self.cover(min_col)
         row = min_col.down
 
         while row != min_col:
+            # Early exit if we have enough solutions
+            if max_solutions and hasattr(self, 'solution_count') and self.solution_count >= max_solutions:
+                self.uncover(min_col)
+                return self.solution_count
+                
             solution.append(row.row_id)
 
             j = row.right
@@ -311,7 +316,7 @@ class DancingLinksPyramid:
             row = row.down
 
         self.uncover(min_col)
-        return len(self.solutions)
+        return self.solution_count if hasattr(self, 'solution_count') else 0
 
 
 class PyramidSolver:
@@ -328,15 +333,21 @@ class PyramidSolver:
         self.locked_positions = set()
         piece_positions = {}
 
-
         for key, piece_id in board_state.items():
             if not piece_id:
                 continue
 
             parts = key.replace('(', '').replace(')', '').split(',')
-            grid_x, grid_y, grid_z = int(parts[0]), int(parts[1]), int(parts[2])
+            frontend_x, frontend_y, frontend_z = int(parts[0]), int(parts[1]), int(parts[2])
+            
+            # Frontend uses INVERTED z: z=0 is top, z=4 is bottom
+            # Backend expects: z=4 is bottom
+            # So we need to invert: grid_z = (levels - 1) - frontend_z
+            grid_x = frontend_x
+            grid_y = frontend_y  
+            grid_z = (self.pyramid.base - 1) - frontend_z
 
-            # Convert frontend grid to backend lattice
+            # Convert grid to backend lattice
             lat_z, lat_x, lat_y = self.pyramid.grid_to_lattice(grid_x, grid_y, grid_z)
 
             self.locked_positions.add((lat_z, lat_x, lat_y))
@@ -380,7 +391,6 @@ class PyramidSolver:
         ]
 
         capacity = len(available_positions)
-        print("DEBUG: Pyramid capacity:", capacity)
 
         usable_pieces = []
         piece_placements = {}  # cache placements
@@ -396,9 +406,12 @@ class PyramidSolver:
 
         print(f"DEBUG: {len(usable_pieces)} pieces can physically fit this pyramid.")
 
-        # If all pieces fit and capacity matches 55, just solve normally
-        if len(usable_pieces) == len(polyspheres) and capacity == 55:
-            print("DEBUG: Standard 12-piece pyramid, solving normally.")
+        # Calculate total cells in usable pieces
+        total_piece_cells = sum(p.size for p in usable_pieces)
+        
+        # If all pieces fit and their total cells match the available capacity, solve directly
+        if len(usable_pieces) == len(polyspheres) and total_piece_cells == capacity:
+            print(f"DEBUG: All {len(usable_pieces)} pieces perfectly fill {capacity} positions, solving directly.")
             return self._solve_with_piece_set(usable_pieces, available_positions, piece_placements, max_solutions,max_time)
         import itertools
 
@@ -466,10 +479,15 @@ class PyramidSolver:
         solutions = []
         dlx.start_time = time.time()
         dlx.max_time = max_time
+        dlx.solution_count = 0
+        dlx.max_solutions_limit = max_solutions
 
         def callback(placement_ids):
+            if dlx.solution_count >= max_solutions:
+                return
             sol = [placement_info[pid] for pid in placement_ids]
             solutions.append(sol)
+            dlx.solution_count += 1
 
         dlx.search([], callback, max_solutions)
 

@@ -1282,7 +1282,6 @@ async function requestSolve({ action = 'init', partialBoard, batchSize, maxTime,
 
     try {
         const payload = {
-            action: action,  // Include action for handleSolveSuccess
             levels: getConfiguredPyramidSize(),
             batchSize,
             maxTime: maxTime ?? solveState.lastMaxTime,
@@ -1328,6 +1327,7 @@ function handleSolveSuccess(data, payload) {
 
     if (isInit) {
         solutionStore.length = 0;
+        // Auto-scroll to solutions section when starting a new solve
         scrollToSolutions();
     }
 
@@ -1352,31 +1352,19 @@ function handleSolveSuccess(data, payload) {
     updateSolutionsSummary();
 }
 
+// Smooth scroll to solutions section
 function scrollToSolutions() {
-    setTimeout(() => {
-        const solutionsElement = document.getElementById('solutions');
-        if (solutionsElement) {
-            const piecesSection = document.querySelector('.pieces-section');
-            if (piecesSection) {
-                solutionsElement.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'nearest',
-                    inline: 'start'
-                });
-                
-                const solutionsTop = solutionsElement.offsetTop;
-                piecesSection.scrollTo({
-                    top: solutionsTop - 50,
-                    behavior: 'smooth'
-                });
-            } else {
-                solutionsElement.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start' 
-                });
-            }
-        }
-    }, 300);
+    console.log('🔵 scrollToSolutions called');
+    const solutionsElement = document.getElementById('solutions');
+    if (solutionsElement) {
+        console.log('✅ Solutions element found, scrolling...');
+        solutionsElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    } else {
+        console.log('❌ Solutions element not found');
+    }
 }
 
 // Polling mechanism to check for new solutions while background computes

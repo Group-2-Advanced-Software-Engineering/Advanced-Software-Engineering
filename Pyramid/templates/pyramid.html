@@ -5,7 +5,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>3D Pyramid Polysphere Puzzle Solver</title>
-    <link rel="stylesheet" href="{% static 'pyramid_style.css' %}" />
+    <link
+      rel="stylesheet"
+      href="{% static 'pyramid_style.css' %}?v=1765497299"
+    />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   </head>
@@ -56,6 +59,11 @@
               your current configuration, or <strong>"Solve Empty"</strong> to
               solve from scratch.
             </p>
+            <p style="font-size: 0.9em; color: #d97706; margin-top: 5px">
+              ⚠️ <strong>Note:</strong> First 10 solutions appear in ~5-10
+              seconds. Scroll down (60%) to load more batches automatically as
+              you need them!
+            </p>
 
             <div class="solve-config">
               <label>
@@ -63,7 +71,7 @@
                 <input
                   type="number"
                   id="solveTimeLimit"
-                  value="10"
+                  value="30"
                   min="0"
                   step="0.5"
                 />
@@ -72,13 +80,13 @@
               <label>
                 Batch size:
                 <select id="batchSizeSelect" class="config-select">
+                  <option value="10" selected>10 (Fast)</option>
+                  <option value="20">20</option>
                   <option value="50">50</option>
-                  <option value="100" selected>100</option>
-                  <option value="500">500</option>
-                  <option value="1000">1000</option>
+                  <option value="100">100</option>
                 </select>
               </label>
-                <label>
+              <label>
                 Pyramid Size:
                 <select id="levels">
                   <option value="4">4</option>
@@ -88,14 +96,16 @@
             </div>
 
             <div class="hint">
-              • Time limit: Sets the per-request search time. Enter
-              <strong>0</strong> to remove the limit. If the limit is reached,
-              partial results are returned and you can continue loading by
-              scrolling.
+              • <strong>Auto-load:</strong> Solutions load automatically as you
+              scroll! When you scroll down to 60%, the next batch loads
+              automatically.
               <br />
-              • Batch size: Controls how many solutions load per scroll.
-              Defaults to <strong>100</strong>. You can change it anytime; the
-              next batch will use your new selection.
+              • Time limit: Sets the per-request search time. Enter
+              <strong>0</strong> to remove the limit.
+              <br />
+              • Batch size: Smaller = faster initial results. Start with
+              <strong>10</strong>
+              for quick feedback, then scroll to load more.
             </div>
           </div>
 
@@ -133,24 +143,39 @@
                 Z (level):
                 <input type="number" id="coordZ3D" value="0" min="0" max="4" />
               </label>
-              <button class="btn btn-primary" onclick="placeSelectedFromPanel3D()">
+              <button
+                class="btn btn-primary"
+                onclick="placeSelectedFromPanel3D()"
+              >
                 Place at (X,Y,Z)
               </button>
             </div>
             <div class="control-row control-arrows">
               <div class="arrow-row">
-                <button class="btn btn-light" onclick="nudgeCoords3D(0,-1,0)">↑</button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,-1,0)">
+                  ↑
+                </button>
               </div>
               <div class="arrow-row">
-                <button class="btn btn-light" onclick="nudgeCoords3D(-1,0,0)">←</button>
-                <button class="btn btn-light" onclick="nudgeCoords3D(1,0,0)">→</button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(-1,0,0)">
+                  ←
+                </button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(1,0,0)">
+                  →
+                </button>
               </div>
               <div class="arrow-row">
-                <button class="btn btn-light" onclick="nudgeCoords3D(0,1,0)">↓</button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,1,0)">
+                  ↓
+                </button>
               </div>
               <div class="arrow-row">
-                <button class="btn btn-light" onclick="nudgeCoords3D(0,0,1)">Z+1</button>
-                <button class="btn btn-light" onclick="nudgeCoords3D(0,0,-1)">Z-1</button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,0,1)">
+                  Z+1
+                </button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,0,-1)">
+                  Z-1
+                </button>
               </div>
             </div>
             <div class="control-row wrap">
@@ -168,13 +193,19 @@
               </button>
             </div>
             <p class="hint">
-              Shortcuts: R rotate, F flip, Backspace undo, C clear. Set X/Y/Z then “Place at (X,Y,Z)” for precise placement.
+              Shortcuts: R rotate, F flip, Backspace undo, C clear. Set X/Y/Z
+              then “Place at (X,Y,Z)” for precise placement.
             </p>
           </div>
 
           <div class="loading" id="loading">
             <div class="spinner"></div>
-            <p>Solving pyramid... (press Stop to cancel)</p>
+            <p id="loadingMessage">
+              Solving pyramid... This may take 30+ seconds for empty pyramids.
+            </p>
+            <p style="font-size: 0.85em; color: #666; margin-top: 5px">
+              The algorithm is exploring millions of possible combinations...
+            </p>
             <button
               id="stopSolveButton"
               class="btn btn-danger"
@@ -246,6 +277,6 @@
       const solveId = "{{ solution_id }}";
       const initialPyramidLevels = {{ pyramid.levels }};
     </script>
-    <script src="{% static 'pyramid_script.js' %}"></script>
+    <script src="{% static 'pyramid_script.js' %}?v=1765497903"></script>
   </body>
 </html>
