@@ -1,0 +1,135 @@
+[
+  {
+    "model": "kanoodleApp.kanoodleboard",
+    "pk": 1,
+    "fields": {
+      "name": "5x11 Kanoodle",
+      "width": 11,
+      "height": 5
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 1,
+    "fields": {
+      "name": "Piece-A",
+      "color": "#ff595e",
+      "shapeData": [[0, 0], [1, 0], [2, 0],
+                     [0, 1],         [2, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 2,
+    "fields": {
+      "name": "Piece-B",
+      "color": "#4361ee",
+      "shapeData": [                [2, 0], [3, 0],
+                     [0, 1], [1, 1], [2, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 3,
+    "fields": {
+      "name": "Piece-C",
+      "color": "#ffd22b",
+      "shapeData": [[1, 0],
+             [0, 1], [1, 1],
+                     [1, 2], [2, 2]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 4,
+    "fields": {
+      "name": "Piece-D",
+      "color": "#9b5de5",
+      "shapeData": [[1, 0],
+             [0, 1], [1, 1], [2, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 5,
+    "fields": {
+      "name": "Piece-E",
+      "color": "#70e000",
+      "shapeData": [[1, 0],
+             [0, 1], [1, 1], [2, 1], [3, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 6,
+    "fields": {
+      "name": "Piece-F",
+      "color": "#ff8f00",
+      "shapeData": [[1, 0], [2, 0],
+             [0, 1], [1, 1], [2, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 7,
+    "fields": {
+      "name": "Piece-G",
+      "color": "#2b9348",
+      "shapeData": [[1, 0], [2, 0],
+             [0, 1], [1, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 8,
+    "fields": {
+      "name": "Piece-H",
+      "color": "#4cc9f0",
+      "shapeData": [[0, 0], [1, 0],
+                     [0, 1],
+                     [0, 2]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 9,
+    "fields": {
+      "name": "Piece-I",
+      "color": "#ff85c2",
+      "shapeData": [[0, 0], [1, 0], [2, 0],
+                                     [2, 1],
+                                     [2, 2]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 10,
+    "fields": {
+      "name": "Piece-J",
+      "color": "#5a189a",
+      "shapeData": [[0, 0],
+                     [0, 1], [1, 1], [2, 1], [3, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 11,
+    "fields": {
+      "name": "Piece-K",
+      "color": "#ffbfd3",
+      "shapeData": [[0, 0],
+                     [0, 1], [1, 1]]
+    }
+  },
+  {
+    "model": "kanoodleApp.piece",
+    "pk": 12,
+    "fields": {
+      "name": "Piece-L",
+      "color": "#ef476f",
+      "shapeData": [[0, 0], [1, 0],
+                             [1, 1], [2, 1],
+                                     [2, 2]]
+    }
+  }
+]

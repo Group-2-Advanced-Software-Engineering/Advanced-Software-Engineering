@@ -1,0 +1,282 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3D Pyramid Polysphere Puzzle Solver</title>
+    <link
+      rel="stylesheet"
+      href="{% static 'pyramid_style.css' %}?v=1765497299"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>3D Pyramid Polysphere Puzzle Solver</h1>
+        <p>Solve the Pyramid with polysphere pieces in 3D</p>
+      </div>
+
+      <div class="main-content">
+        <div class="pyramid-section">
+          <h2 class="section-title">3D Pyramid (Level-{{ pyramid.levels }})</h2>
+
+          <div class="instructions">
+            <h3>How to Play:</h3>
+            <ul>
+              <li>
+                <strong>Rotate View:</strong> Click and drag to rotate the
+                pyramid
+              </li>
+              <li><strong>Zoom:</strong> Scroll to zoom in/out</li>
+              <li>
+                <strong>Select Piece:</strong> Click a piece from the panel on
+                the right
+              </li>
+              <li>
+                <strong>Place Piece:</strong> Click on a pyramid position to
+                place (hover shows preview)
+              </li>
+              <li>
+                <strong>Rotate Piece:</strong> Use X, Y, Z buttons to rotate
+                around each axis
+              </li>
+              <li>
+                <strong>Flip Piece:</strong> Use the Flip button to mirror the
+                piece
+              </li>
+              <li><strong>Undo:</strong> Remove the last placed piece</li>
+              <li><strong>Clear:</strong> Start over with an empty pyramid</li>
+            </ul>
+          </div>
+
+          <div class="solve-info">
+            <h3>Solving Options:</h3>
+            <p>
+              Use <strong>"Solve Pyramid"</strong> to find all solutions for
+              your current configuration, or <strong>"Solve Empty"</strong> to
+              solve from scratch.
+            </p>
+            <p style="font-size: 0.9em; color: #d97706; margin-top: 5px">
+              ⚠️ <strong>Note:</strong> First 10 solutions appear in ~5-10
+              seconds. Scroll down (60%) to load more batches automatically as
+              you need them!
+            </p>
+
+            <div class="solve-config">
+              <label>
+                Time limit (seconds):
+                <input
+                  type="number"
+                  id="solveTimeLimit"
+                  value="30"
+                  min="0"
+                  step="0.5"
+                />
+              </label>
+
+              <label>
+                Batch size:
+                <select id="batchSizeSelect" class="config-select">
+                  <option value="10" selected>10 (Fast)</option>
+                  <option value="20">20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </label>
+              <label>
+                Pyramid Size:
+                <select id="levels">
+                  <option value="4">4</option>
+                  <option value="5" selected>5</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="hint">
+              • <strong>Auto-load:</strong> Solutions load automatically as you
+              scroll! When you scroll down to 60%, the next batch loads
+              automatically.
+              <br />
+              • Time limit: Sets the per-request search time. Enter
+              <strong>0</strong> to remove the limit.
+              <br />
+              • Batch size: Smaller = faster initial results. Start with
+              <strong>10</strong>
+              for quick feedback, then scroll to load more.
+            </div>
+          </div>
+
+          <div id="pyramid-canvas-container">
+            <canvas id="pyramid-canvas"></canvas>
+          </div>
+
+          <div class="controls">
+            <button class="btn btn-primary" onclick="solvePyramid()">
+              Solve Pyramid
+            </button>
+            <button class="btn btn-secondary" onclick="clearPyramid()">
+              Clear Pyramid
+            </button>
+            <button class="btn btn-success" onclick="solveEmpty()">
+              Solve Empty
+            </button>
+            <button class="btn btn-danger" onclick="undoLastMove()">
+              Undo
+            </button>
+          </div>
+
+          <div class="control-panel">
+            <h3>Quick Control Panel</h3>
+            <div class="control-row">
+              <label>
+                X:
+                <input type="number" id="coordX3D" value="0" min="0" max="4" />
+              </label>
+              <label>
+                Y:
+                <input type="number" id="coordY3D" value="0" min="0" max="4" />
+              </label>
+              <label>
+                Z (level):
+                <input type="number" id="coordZ3D" value="0" min="0" max="4" />
+              </label>
+              <button
+                class="btn btn-primary"
+                onclick="placeSelectedFromPanel3D()"
+              >
+                Place at (X,Y,Z)
+              </button>
+            </div>
+            <div class="control-row control-arrows">
+              <div class="arrow-row">
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,-1,0)">
+                  ↑
+                </button>
+              </div>
+              <div class="arrow-row">
+                <button class="btn btn-light" onclick="nudgeCoords3D(-1,0,0)">
+                  ←
+                </button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(1,0,0)">
+                  →
+                </button>
+              </div>
+              <div class="arrow-row">
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,1,0)">
+                  ↓
+                </button>
+              </div>
+              <div class="arrow-row">
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,0,1)">
+                  Z+1
+                </button>
+                <button class="btn btn-light" onclick="nudgeCoords3D(0,0,-1)">
+                  Z-1
+                </button>
+              </div>
+            </div>
+            <div class="control-row wrap">
+              <button class="btn btn-secondary" onclick="rotatePiece()">
+                Rotate (R)
+              </button>
+              <button class="btn btn-secondary" onclick="flipPiece()">
+                Flip (F)
+              </button>
+              <button class="btn btn-danger" onclick="undoLastMove()">
+                Undo (⌫)
+              </button>
+              <button class="btn btn-outline" onclick="clearPyramid()">
+                Clear (C)
+              </button>
+            </div>
+            <p class="hint">
+              Shortcuts: R rotate, F flip, Backspace undo, C clear. Set X/Y/Z
+              then “Place at (X,Y,Z)” for precise placement.
+            </p>
+          </div>
+
+          <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p id="loadingMessage">
+              Solving pyramid... This may take 30+ seconds for empty pyramids.
+            </p>
+            <p style="font-size: 0.85em; color: #666; margin-top: 5px">
+              The algorithm is exploring millions of possible combinations...
+            </p>
+            <button
+              id="stopSolveButton"
+              class="btn btn-danger"
+              style="margin-top: 10px; display: none"
+              onclick="stopSolving()"
+            >
+              Stop
+            </button>
+          </div>
+
+          <div id="status"></div>
+        </div>
+
+        <div class="pieces-section">
+          <h2 class="section-title">Puzzle Pieces</h2>
+          <div class="pieces-grid" id="pieces"></div>
+
+          <div class="controls">
+            <button class="btn btn-primary" onclick="rotatePiece()">
+              Rotate Piece
+            </button>
+            <button class="btn btn-primary" onclick="flipPiece()">
+              Flip Piece
+            </button>
+          </div>
+
+          <div id="pieceInfo" class="status info" style="display: none">
+            <div>
+              <strong>Selected Piece:</strong> <span id="pieceName"></span>
+            </div>
+            <div>
+              <strong>Rotation:</strong> <span id="pieceRotation">0 deg</span>
+            </div>
+            <div>
+              <strong>Flipped:</strong> <span id="pieceFlipped">No</span>
+            </div>
+            <div id="selectedPiecePreview" class="piece-preview"></div>
+          </div>
+
+          <div
+            id="solutionsSummary"
+            class="status info"
+            style="display: none"
+          ></div>
+
+          <div
+            class="solutions-hint"
+            style="
+              padding: 10px;
+              background: #e3f2fd;
+              border-radius: 5px;
+              margin-bottom: 10px;
+              display: none;
+            "
+            id="solutionsHint"
+          >
+            <p style="margin: 0; color: #1976d2; font-size: 14px">
+              💡 <strong>Tip:</strong> Click on any solution below to view it in
+              3D on the pyramid
+            </p>
+          </div>
+
+          <div class="solutions" id="solutions"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const solveId = "{{ solution_id }}";
+      const initialPyramidLevels = {{ pyramid.levels }};
+    </script>
+    <script src="{% static 'pyramid_script.js' %}?v=1765497903"></script>
+  </body>
+</html>
